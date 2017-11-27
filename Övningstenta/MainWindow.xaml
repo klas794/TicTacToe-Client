@@ -1,0 +1,78 @@
+﻿<Window x:Class="Övningstenta.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Övningstenta"
+        mc:Ignorable="d"
+        Title="Luffarschack" Height="358" Width="605">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Menu>
+            <MenuItem Header="_Meny">
+                <!--<MenuItem Name="
+                ame" Header="_Nytt spel" InputGestureText="Ctrl+N" Click="NewGame_Click"></MenuItem>
+                <Separator />-->
+                <MenuItem Name="CloseGame" Header="_Avsluta" Click="CloseGame_Click"></MenuItem>
+            </MenuItem>
+        </Menu>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal">
+        
+            <Grid Width="300" Name="TicTacToe" Background="#990000">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="100"></RowDefinition>
+                    <RowDefinition Height="100"></RowDefinition>
+                    <RowDefinition Height="100"></RowDefinition>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+
+                <Button Name="X1Y1" Grid.Row="0" Grid.Column="0" Click="Button_Click" TabIndex="0">
+                    <Image></Image>
+                </Button>
+                <Button Name="X2Y1" Grid.Row="0" Grid.Column="1" Click="Button_Click" TabIndex="1">
+                    <Image></Image>
+                </Button>
+                <Button Name="X3Y1" Grid.Row="0" Grid.Column="2" Click="Button_Click" TabIndex="2">
+                    <Image></Image>
+                </Button>
+
+                <Button Name="X1Y2" Grid.Row="1" Grid.Column="0" Click="Button_Click" TabIndex="3">
+                    <Image></Image>
+                </Button>
+                <Button Name="X2Y2" Grid.Row="1" Grid.Column="1" Click="Button_Click" TabIndex="4">
+                    <Image></Image>
+                </Button>
+                <Button Name="X3Y2" Grid.Row="1" Grid.Column="2" Click="Button_Click" TabIndex="5">
+                    <Image></Image>
+                </Button>
+
+                <Button Name="X1Y3" Grid.Row="2" Grid.Column="0" Click="Button_Click" TabIndex="6">
+                    <Image></Image>
+                </Button>
+                <Button Name="X2Y3" Grid.Row="2" Grid.Column="1" Click="Button_Click" TabIndex="7">
+                    <Image></Image>
+                </Button>
+                <Button Name="X3Y3" Grid.Row="2" Grid.Column="2" Click="Button_Click" TabIndex="8">
+                    <Image></Image>
+                </Button>
+            </Grid>
+
+            <StackPanel Width="260" Margin="20">
+                <Label>Connect to server</Label>
+                <TextBox Name="ServerAddress">127.0.0.1</TextBox>
+                <Button Name="Connect" Width="100" HorizontalAlignment="Left" Click="Connect_Click">Connect</Button>
+                <TextBlock Name="ConnectionMessage"></TextBlock>
+            </StackPanel>
+            
+        </StackPanel>
+    </Grid>
+</Window>
