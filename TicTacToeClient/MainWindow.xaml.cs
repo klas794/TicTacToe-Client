@@ -38,9 +38,7 @@ namespace Övningstenta
         private string _imagePath { get; set; }
         public bool WaitingForOpponent { get; set; }
 
-        //private const string WELCOME_MESSAGE = "Welcome to Tic Tac Toe Server";
-        //private const string START_PLAYING_MESSAGE = "Welcome, start playing...";
-        //private const string PLAYER_JOINED_MESSAGE = "Player joined. Game started...";
+        private const string NEW_GAME = "New game";
         private const double HIDDEN_BUTTON_OPACITY = .3;
 
         private int _gridSize;
@@ -259,7 +257,12 @@ namespace Övningstenta
 
         private void NewGame_Click(object sender, RoutedEventArgs e)
         {
-            _socketClient.ClientSend("New game");
+            _socketClient.ClientSend(NEW_GAME);
+            CreateNewGame();
+        }
+
+        public void CreateNewGame()
+        {
             ClearImages();
             GameOver = false;
             WaitingForOpponent = false;

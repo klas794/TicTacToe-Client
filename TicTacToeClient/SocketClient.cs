@@ -22,6 +22,7 @@ namespace TicTacToeClient
         private const string WELCOME_MESSAGE = "Welcome to Tic Tac Toe Server";
         private const string START_PLAYING_MESSAGE = "Welcome, start playing...";
         private const string PLAYER_JOINED_MESSAGE = "Player joined. Game started...";
+        private const string NEW_GAME = "New game";
         private MainWindow _window;
 
         public SocketClient(MainWindow window)
@@ -126,6 +127,13 @@ namespace TicTacToeClient
 
                             _window.ConnectionMessage.Text = message;
                             _window.GameOver = false;
+                        });
+                    }
+                    else if (message == NEW_GAME)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            _window.CreateNewGame();
                         });
                     }
                     else

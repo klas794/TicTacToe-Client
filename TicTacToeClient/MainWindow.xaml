@@ -13,9 +13,8 @@
         </Grid.RowDefinitions>
         <Menu>
             <MenuItem Header="_Meny">
-                <!--<MenuItem Name="
-                ame" Header="_Nytt spel" InputGestureText="Ctrl+N" Click="NewGame_Click"></MenuItem>
-                <Separator />-->
+                <MenuItem Name="NewGame" Header="_Nytt spel" InputGestureText="Ctrl+N" Click="NewGame_Click"></MenuItem>
+                <Separator />
                 <MenuItem Name="CloseGame" Header="_Avsluta" Click="CloseGame_Click"></MenuItem>
             </MenuItem>
         </Menu>
