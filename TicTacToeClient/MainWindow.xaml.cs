@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using SocketClientNameSpace;
+using TicTacToeClient;
 using System.Net;
 using System.Net.Sockets;
 using System.Windows.Controls.Primitives;
@@ -36,16 +36,17 @@ namespace Övningstenta
         private string _currentPlayer { get; set; }
         private string _imageUri { get; set; }
         private string _imagePath { get; set; }
-        public bool _waitingForOpponent { get; set; }
+        public bool WaitingForOpponent { get; set; }
 
-        private const string WELCOME_MESSAGE = "Welcome to Tic Tac Toe Server";
-        private const string START_PLAYING_MESSAGE = "Welcome, start playing...";
-        private const string PLAYER_JOINED_MESSAGE = "Player joined. Game started...";
+        //private const string WELCOME_MESSAGE = "Welcome to Tic Tac Toe Server";
+        //private const string START_PLAYING_MESSAGE = "Welcome, start playing...";
+        //private const string PLAYER_JOINED_MESSAGE = "Player joined. Game started...";
         private const double HIDDEN_BUTTON_OPACITY = .3;
 
         private int _gridSize;
-        private bool _gameOver = true;
-        private bool _opponentClicking;
+        private SocketClient _socketClient;
+        public bool GameOver = true;
+        public bool OpponentClicking;
 
         public MainWindow()
         {
@@ -55,12 +56,14 @@ namespace Övningstenta
             _imagePath = "pack://application:,,," + _imageUri;
 
             _gridSize = (int)Math.Sqrt(TicTacToe.Children.Count);
+
+            _socketClient = new SocketClient(this);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
 
-            if(_gameOver)
+            if(GameOver)
             {
                 ConnectionMessage.Text = "Game not started";
                 return;
@@ -72,18 +75,18 @@ namespace Övningstenta
 
             if(!buttonTaken) {
 
-                if (!_opponentClicking && !_waitingForOpponent ||
-                    _opponentClicking)
+                if (!OpponentClicking && !WaitingForOpponent ||
+                    OpponentClicking)
                 {
                     SetMarker(button);
                     _currentPlayer = _currentPlayer == "o" ? "x" : "o";
                     LookForWinner();
                 }
 
-                if (!_opponentClicking && !_waitingForOpponent) {
+                if (!OpponentClicking && !WaitingForOpponent) {
 
-                    ClientSend(button.TabIndex.ToString());
-                    _waitingForOpponent = true;
+                    _socketClient.ClientSend(button.TabIndex.ToString());
+                    WaitingForOpponent = true;
                 }
                 
             }
@@ -213,7 +216,7 @@ namespace Övningstenta
         private void AnnounceWinner(string v)
         {
             //MessageBox.Show(String.Format("{0} is the winner!", v));
-            _gameOver = true;
+            GameOver = true;
             //ClearImages();
         }
 
@@ -256,11 +259,11 @@ namespace Övningstenta
 
         private void NewGame_Click(object sender, RoutedEventArgs e)
         {
-            ClientSend("New game");
+            _socketClient.ClientSend("New game");
             ClearImages();
-            _gameOver = false;
-            _waitingForOpponent = false;
-            _opponentClicking = false;
+            GameOver = false;
+            WaitingForOpponent = false;
+            OpponentClicking = false;
             _currentPlayer = "o";
         }
 
@@ -276,7 +279,7 @@ namespace Övningstenta
                 var address = IPAddress.Parse(ServerAddress.Text);
                 ServerAddress.Foreground = new SolidColorBrush(Colors.Black);
 
-                ClientConnectAsync(address);
+                _socketClient.ClientConnectAsync(address);
 
                 
             }
@@ -285,119 +288,6 @@ namespace Övningstenta
                 ServerAddress.Foreground = new SolidColorBrush(Colors.Red);
             }
         }
-
-
-        private IPEndPoint RemoteEndPoint(IPAddress address)
-        {
-
-            int port = int.Parse("8080");
-
-            IPEndPoint endPoint = new IPEndPoint(address, port);
-
-            return endPoint;
-        }
-
-        public async Task ClientConnectAsync(IPAddress address)
-        {
-            byte[] data = new byte[1024];
-            client = new TcpClient();
-
-            try
-            {
-                client.Connect(RemoteEndPoint(address));
-                ns = client.GetStream();
-
-                //int recv = ns.Read(data, 0, data.Length);
-                //string response = Encoding.ASCII.GetString(data, 0, recv);
-
-                ClientSend(PLAYER_JOINED_MESSAGE);
-
-                await Task.Run(() => ClientRecieve());
-            }
-            catch
-            {
-                throw;
-            }
-        }
-
-        public void ClientSend(string message)
-        {
-            try
-            {
-                var bytesToSend = Encoding.ASCII.GetBytes(message);
-                ns.Write(bytesToSend, 0, bytesToSend.Length);
-            }
-            catch
-            {
-                MessageBox.Show("Servern stängde anslutningen");
-            }
-        }
-        
-        private async Task ClientRecieve()
-        {
-            while (true)
-            {
-                var data = new byte[1024];
-                int recv = await ns.ReadAsync(data, 0, data.Length);
-                string message = Encoding.ASCII.GetString(data, 0, recv);
-
-                try
-                {
-                    var number = int.Parse(message);
-
-                    Dispatcher.Invoke( () => { 
-
-                        foreach (var item in TicTacToe.Children)
-                        {
-                            if ((item as Button).TabIndex == number)
-                            {
-                                _opponentClicking = true;
-                                (item as Button).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); ;
-                                _opponentClicking = false;
-                                _waitingForOpponent = false;
-                            }
-                        }
-
-                    });
-                }
-                catch
-                {
-                    if (message == WELCOME_MESSAGE)
-                    {
-                        Dispatcher.Invoke(() =>
-                        {
-                            ServerAddress.Foreground = new SolidColorBrush(Colors.Green);
-
-                            ConnectionMessage.Text = "Connected";
-                            //System.Threading.Thread.Sleep(3000);
-                            //ConnectionMessage.Text = "";
-                        });
-                    }
-                    else if (message == PLAYER_JOINED_MESSAGE || message == START_PLAYING_MESSAGE)
-                    {
-                        Dispatcher.Invoke(() =>
-                        {
-                            if(message == START_PLAYING_MESSAGE)
-                            {
-                                ServerAddress.Foreground = new SolidColorBrush(Colors.Green);
-                            }
-
-                            ConnectionMessage.Text = message;
-                            _gameOver = false;
-                        });
-                    }
-                    else
-                    {
-                        //MessageBox.Show(message);
-                        Dispatcher.Invoke(() =>
-                        {
-                            ConnectionMessage.Text = message;
-                        });
-                    }
-                }
-            }
-
-        }
-
+       
     }
 }
