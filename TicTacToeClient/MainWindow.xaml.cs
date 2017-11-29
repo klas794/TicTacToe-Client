@@ -34,17 +34,22 @@ namespace Övningstenta
         private NetworkStream ns;
 
         private string _currentPlayer { get; set; }
+        private string _homeMarker { get; set; }
         private string _imageUri { get; set; }
         private string _imagePath { get; set; }
+
+        private int _gridSize;
+
         public bool WaitingForOpponent { get; set; }
 
         private const string NEW_GAME = "New game";
         private const double HIDDEN_BUTTON_OPACITY = .3;
+        private const int _filterSize = 3;
 
-        private int _gridSize;
         private SocketClient _socketClient;
         public bool GameOver = true;
         public bool OpponentClicking;
+        private bool _firstHomeMove = true;
 
         public MainWindow()
         {
@@ -56,6 +61,10 @@ namespace Övningstenta
             _gridSize = (int)Math.Sqrt(TicTacToe.Children.Count);
 
             _socketClient = new SocketClient(this);
+
+            var defaultServer = SocketHelper.GetDefaultServer();
+            ServerAddress.Text = defaultServer.Item1.ToString();
+            ServerPort.Text = defaultServer.Item2.ToString();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -69,7 +78,7 @@ namespace Övningstenta
 
             var button = sender as Button;
 
-            var buttonTaken = GetCharacter(button.TabIndex) != null;
+            var buttonTaken = GetCharacter(0, button.TabIndex) != null;
 
             if(!buttonTaken) {
 
@@ -82,6 +91,13 @@ namespace Övningstenta
                 }
 
                 if (!OpponentClicking && !WaitingForOpponent) {
+
+                    if(_firstHomeMove)
+                    {
+                        ConnectionMessage.Text = "";
+                        _homeMarker = _currentPlayer;
+                        _firstHomeMove = false;
+                    }
 
                     _socketClient.ClientSend(button.TabIndex.ToString());
                     WaitingForOpponent = true;
@@ -98,15 +114,15 @@ namespace Övningstenta
 
         }
 
-        private void SetWinningRow(int rowIndex)
+        private void SetWinningRow(int filterStartIndex, int rowIndex)
         {
-            for (int i = 0; i < _gridSize; i++)
+            for (int i = 0; i < _filterSize; i++)
             {
-                if(i != rowIndex)
+                if(i == rowIndex)
                 {
-                    for (int j = 0; j < _gridSize; j++)
+                    for (int j = 0; j < _filterSize; j++)
                     {
-                        HideButton(i * _gridSize + j);
+                        HideButton(filterStartIndex + i * _gridSize + j);
                         
                     }
                 }
@@ -114,35 +130,43 @@ namespace Övningstenta
             }
         }
 
-        private void SetWinningColumn(int columnIndex)
+        private void SetWinningColumn(int filterStartIndex, int columnIndex)
         {
-            for (int i = 0; i < _gridSize; i++)
+            for (int i = 0; i < _filterSize; i++)
             {
-                if (i != columnIndex)
+                if (i == columnIndex)
                 {
-                    for (int j = 0; j < _gridSize; j++)
+                    for (int j = 0; j < _filterSize; j++)
                     {
-                        HideButton(i + j * _gridSize);
+                        HideButton(filterStartIndex + i + j * _gridSize);
                     }
                 }
 
             }
         }
 
-        private void SetWinningDiagonal(DiagonalDirections direction)
+        private void SetWinningDiagonal(int filterStartIndex, DiagonalDirections direction)
         {
-            for (int i = 0; i < _gridSize; i++)
+            for (int i = 0; i < _filterSize; i++)
             {
-                for (int j = 0; j < _gridSize; j++)
+                for (int j = 0; j < _filterSize; j++)
                 {
-                    if(i != j)
+                    if(i == j)
                     {
                         var index = direction == DiagonalDirections.TopLeft ?
                             i * _gridSize + j : i * _gridSize + (2 - j);
+                        index += filterStartIndex;
                         HideButton(index);
                     }
                 }
             }
+        }
+
+        private void ShowButton(int buttonIndex)
+        {
+            var button = TicTacToe.Children[buttonIndex] as Button;
+            var image = button.Content as Image;
+            image.Opacity = 1;
         }
 
         private void HideButton(int buttonIndex)
@@ -152,69 +176,97 @@ namespace Övningstenta
             image.Opacity = HIDDEN_BUTTON_OPACITY;
         }
 
+        private void HideAllButtons()
+        {
+            for (int i = 0; i < _gridSize; i++)
+            {
+                HideButton(i);
+            }
+        }
+
+        private void ShowAllButtons()
+        {
+            for (int i = 0; i < _gridSize; i++)
+            {
+                ShowButton(i);
+            }
+        }
+
         private void LookForWinner()
         {
-            // rows
-            for (int i = 0; i < _gridSize; i++)
+            var cursor = 0;
+
+            for (int cursorX = 0; cursorX <= _gridSize - _filterSize; cursorX++)
             {
-                var addition = i * _gridSize;
-                var first = GetCharacter(0 + addition);
-                var second = GetCharacter(1 + addition);
-                var third = GetCharacter(2 + addition);
-                if (  first == second 
-                    && second == third
-                    && first != null
-                    )
+                for (int cursorY = 0; cursorY <= _gridSize - _filterSize; cursorY++)
                 {
-                    SetWinningRow(i);
-                    AnnounceWinner(first);
-                    break;
+                    cursor = cursorX + _gridSize * cursorY;
+                    // rows
+                    for (int i = 0; i < _filterSize; i++)
+                    {
+                        var addition = i * _gridSize;
+                        var first = GetCharacter(cursor, 0 + addition);
+                        var second = GetCharacter(cursor, 1 + addition);
+                        var third = GetCharacter(cursor, 2 + addition);
+                        if (  first == second 
+                            && second == third
+                            && first != null
+                            )
+                        {
+                            SetWinningRow(cursor, i);
+                            AnnounceWinner(first);
+                            break;
+                        }
+                    }
+
+                    // columns
+                    for (int i = 0; i < _filterSize; i++)
+                    {
+                        var addition = i;
+                        var first = GetCharacter(cursor, 0 + addition);
+                        var second = GetCharacter(cursor, _gridSize + addition);
+                        var third = GetCharacter(cursor, _gridSize * 2 + addition);
+                        if (first == second
+                            && second == third
+                            && first != null
+                            )
+                        {
+                            SetWinningColumn(cursor, i);
+                            AnnounceWinner(first);
+                            break;
+                        }
+                    }
+
+                    // diagonal top-left to bottom-right
+                    if (GetCharacter(cursor, 0) != null
+                            && GetCharacter(cursor, 0) == GetCharacter(cursor, _gridSize + 1)
+                            && GetCharacter(cursor, _gridSize + 1) == GetCharacter(cursor, _gridSize * 2 + 2)
+                            )
+                    {
+                        SetWinningDiagonal(cursor, DiagonalDirections.TopLeft);
+                        AnnounceWinner(GetCharacter(cursor, 0));
+                    }
+
+                    // diagonal top-right to bottom-left
+                    if (GetCharacter(cursor, 2) != null 
+                        && GetCharacter(cursor, 2) == GetCharacter(cursor, _gridSize + 1)
+                            && GetCharacter(cursor, _gridSize + 1) == GetCharacter(cursor, _gridSize * 2) 
+                            )
+                    {
+                        SetWinningDiagonal(cursor, DiagonalDirections.TopRight);
+                        AnnounceWinner(GetCharacter(cursor, 2));
+                    }
+
                 }
             }
 
-            // columns
-            for (int i = 0; i < _gridSize; i++)
-            {
-                var addition = i;
-                var first = GetCharacter(0 + addition);
-                var second = GetCharacter(_gridSize + addition);
-                var third = GetCharacter(6 + addition);
-                if (first == second
-                    && second == third
-                    && first != null
-                    )
-                {
-                    SetWinningColumn(i);
-                    AnnounceWinner(first);
-                    break;
-                }
-            }
-
-            // diagonal top-left to bottom-right
-            if (GetCharacter(0) == GetCharacter(4)
-                    && GetCharacter(4) == GetCharacter(8)
-                    && GetCharacter(0) != null
-                    )
-            {
-                SetWinningDiagonal(DiagonalDirections.TopLeft);
-                AnnounceWinner(GetCharacter(0));
-            }
-
-            // diagonal top-right to bottom-left
-            if (GetCharacter(2) == GetCharacter(4)
-                    && GetCharacter(4) == GetCharacter(6)
-                    && GetCharacter(2) != null
-                    )
-            {
-                SetWinningDiagonal(DiagonalDirections.TopRight);
-                AnnounceWinner(GetCharacter(2));
-            }
         }
 
         private void AnnounceWinner(string v)
         {
             //MessageBox.Show(String.Format("{0} is the winner!", v));
             GameOver = true;
+            ConnectionMessage.Text = v == _homeMarker ? "You lost.": "You won!";
             //ClearImages();
         }
 
@@ -228,9 +280,9 @@ namespace Övningstenta
             }
         }
 
-        private string GetCharacter(int index)
+        private string GetCharacter(int cursor, int index)
         {
-            var button = TicTacToe.Children[index] as Button;
+            var button = TicTacToe.Children[cursor + index] as Button;
             var image = button.Content as Image;
             var source = image.Source as BitmapImage;
 
@@ -268,6 +320,8 @@ namespace Övningstenta
             WaitingForOpponent = false;
             OpponentClicking = false;
             _currentPlayer = "o";
+            _firstHomeMove = true;
+            ConnectionMessage.Text = "";
         }
 
         private void CloseGame_Click(object sender, RoutedEventArgs e)
@@ -280,9 +334,10 @@ namespace Övningstenta
             try
             {
                 var address = IPAddress.Parse(ServerAddress.Text);
+                var port = int.Parse(ServerPort.Text);
                 ServerAddress.Foreground = new SolidColorBrush(Colors.Black);
 
-                _socketClient.ClientConnectAsync(address);
+                _socketClient.ClientConnectAsync(address, port);
 
                 
             }

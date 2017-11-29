@@ -30,24 +30,22 @@ namespace TicTacToeClient
             _window = window;
         }
 
-        private IPEndPoint RemoteEndPoint(IPAddress address)
+        private IPEndPoint RemoteEndPoint(IPAddress address, int port)
         {
-
-            int port = int.Parse("8080");
 
             IPEndPoint endPoint = new IPEndPoint(address, port);
 
             return endPoint;
         }
 
-        public async Task ClientConnectAsync(IPAddress address)
+        public async Task ClientConnectAsync(IPAddress address, int port)
         {
             byte[] data = new byte[1024];
             client = new TcpClient();
 
             try
             {
-                client.Connect(RemoteEndPoint(address));
+                client.Connect(RemoteEndPoint(address, port));
                 ns = client.GetStream();
 
                 //int recv = ns.Read(data, 0, data.Length);
@@ -123,6 +121,10 @@ namespace TicTacToeClient
                             if (message == START_PLAYING_MESSAGE)
                             {
                                 _window.ServerAddress.Foreground = new SolidColorBrush(Colors.Green);
+                            }
+                            else
+                            {
+                                _window.CreateNewGame();
                             }
 
                             _window.ConnectionMessage.Text = message;
