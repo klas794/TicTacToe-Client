@@ -44,7 +44,7 @@ namespace Övningstenta
 
         private const string NEW_GAME = "New game";
         private const double HIDDEN_BUTTON_OPACITY = .3;
-        private const int _filterSize = 3;
+        private const int _filterSize = 4;
 
         private SocketClient _socketClient;
         public bool GameOver = true;
@@ -154,7 +154,7 @@ namespace Övningstenta
                     if(i == j)
                     {
                         var index = direction == DiagonalDirections.TopLeft ?
-                            i * _gridSize + j : i * _gridSize + (2 - j);
+                            i * _gridSize + j : i * _gridSize + (_filterSize -1 - j);
                         index += filterStartIndex;
                         HideButton(index);
                     }
@@ -208,8 +208,10 @@ namespace Övningstenta
                         var first = GetCharacter(cursor, 0 + addition);
                         var second = GetCharacter(cursor, 1 + addition);
                         var third = GetCharacter(cursor, 2 + addition);
+                        var fourth = GetCharacter(cursor, 3 + addition);
                         if (  first == second 
                             && second == third
+                            && third == fourth
                             && first != null
                             )
                         {
@@ -226,8 +228,10 @@ namespace Övningstenta
                         var first = GetCharacter(cursor, 0 + addition);
                         var second = GetCharacter(cursor, _gridSize + addition);
                         var third = GetCharacter(cursor, _gridSize * 2 + addition);
+                        var fourth = GetCharacter(cursor, _gridSize * 3 + addition);
                         if (first == second
                             && second == third
+                            && third == fourth
                             && first != null
                             )
                         {
@@ -241,6 +245,7 @@ namespace Övningstenta
                     if (GetCharacter(cursor, 0) != null
                             && GetCharacter(cursor, 0) == GetCharacter(cursor, _gridSize + 1)
                             && GetCharacter(cursor, _gridSize + 1) == GetCharacter(cursor, _gridSize * 2 + 2)
+                            && GetCharacter(cursor, _gridSize * 2 + 2) == GetCharacter(cursor, _gridSize * 3 + 3)
                             )
                     {
                         SetWinningDiagonal(cursor, DiagonalDirections.TopLeft);
@@ -248,9 +253,10 @@ namespace Övningstenta
                     }
 
                     // diagonal top-right to bottom-left
-                    if (GetCharacter(cursor, 2) != null 
-                        && GetCharacter(cursor, 2) == GetCharacter(cursor, _gridSize + 1)
-                            && GetCharacter(cursor, _gridSize + 1) == GetCharacter(cursor, _gridSize * 2) 
+                    if (GetCharacter(cursor, 3) != null 
+                        && GetCharacter(cursor, 3) == GetCharacter(cursor, _gridSize + 2)
+                        && GetCharacter(cursor, _gridSize + 2) == GetCharacter(cursor, _gridSize * 2 + 1)
+                        && GetCharacter(cursor, _gridSize * 2 + 1) == GetCharacter(cursor, _gridSize * 3) 
                             )
                     {
                         SetWinningDiagonal(cursor, DiagonalDirections.TopRight);
