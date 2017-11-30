@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Övningstenta"
         mc:Ignorable="d"
-        Title="Tic tac toe" Height="358" Width="605">
+        Title="Tic tac toe" Height="400" Width="605">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
@@ -20,7 +20,7 @@
         </Menu>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal">
-            <Grid Width="350" Name="TicTacToe" Background="#990000">
+            <Grid Width="350" Height="350"  Name="TicTacToe" Background="#990000">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="50"></RowDefinition>
                     <RowDefinition Height="50"></RowDefinition>
@@ -196,7 +196,7 @@
                 </Button>
             </Grid>
 
-            <StackPanel Width="260" Margin="20">
+            <StackPanel Width="210" Margin="20,20,20,10">
                 <Label>Connect to server</Label>
                 <StackPanel Orientation="Horizontal">
                     <Label>IP:</Label>
