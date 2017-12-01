@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Övningstenta"
         mc:Ignorable="d"
-        Title="Tic tac toe" Height="400" Width="605">
+        Title="Tic tac toe" Height="413.617" Width="605">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>

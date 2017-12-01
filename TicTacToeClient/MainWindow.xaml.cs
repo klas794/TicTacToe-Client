@@ -149,16 +149,10 @@ namespace Övningstenta
         {
             for (int i = 0; i < _filterSize; i++)
             {
-                for (int j = 0; j < _filterSize; j++)
-                {
-                    if(i == j)
-                    {
-                        var index = direction == DiagonalDirections.TopLeft ?
-                            i * _gridSize + j : i * _gridSize + (_filterSize -1 - j);
-                        index += filterStartIndex;
-                        HideButton(index);
-                    }
-                }
+                var index = direction == DiagonalDirections.TopLeft ?
+                    i * _gridSize + i : i * _gridSize + (_filterSize -1 - i);
+                index += filterStartIndex;
+                HideButton(index);
             }
         }
 
@@ -253,10 +247,10 @@ namespace Övningstenta
                     }
 
                     // diagonal top-right to bottom-left
-                    if (GetCharacter(cursor, 3) != null 
-                        && GetCharacter(cursor, 3) == GetCharacter(cursor, _gridSize + 2)
-                        && GetCharacter(cursor, _gridSize + 2) == GetCharacter(cursor, _gridSize * 2 + 1)
-                        && GetCharacter(cursor, _gridSize * 2 + 1) == GetCharacter(cursor, _gridSize * 3) 
+                    if (GetCharacter(cursor, _filterSize - 1) != null 
+                        && GetCharacter(cursor, _filterSize - 1) == GetCharacter(cursor, _gridSize + _filterSize - 2)
+                        && GetCharacter(cursor, _gridSize + _filterSize - 2) == GetCharacter(cursor, _gridSize * 2 + _filterSize - 3)
+                        && GetCharacter(cursor, _gridSize * 2 + _filterSize - 3) == GetCharacter(cursor, _gridSize * 3) 
                             )
                     {
                         SetWinningDiagonal(cursor, DiagonalDirections.TopRight);
